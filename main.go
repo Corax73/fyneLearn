@@ -17,12 +17,14 @@ type State struct {
 
 type Calc struct {
 	State
+	Input   *widget.Entry
 	Display *widget.Label
 }
 
 func main() {
 	myApp := app.New()
-	var data State
+	c := Calc{Input: widget.NewEntry(), Display: widget.NewLabel("")}
+	c.Input.SetPlaceHolder("Enter number")
 	window := myApp.NewWindow("Calc")
 	icon, err := fyne.LoadResourceFromPath("/Icon.png")
 	if err == nil {
@@ -30,17 +32,16 @@ func main() {
 	}
 	input := widget.NewEntry()
 	input.SetPlaceHolder("Enter number")
-	display := widget.NewLabel("0")
 	btnSum := widget.NewButton("+", func() {
-		sumHandler(&data, input, display)
+		sumHandler(&c, c.Input, c.Display)
 	})
 	btnSub := widget.NewButton("-", func() {
-		val1, err := strconv.Atoi(input.Text)
-		input.SetText("0")
+		val1, err := strconv.Atoi(c.Input.Text)
+		c.Input.SetText("0")
 		if err != nil {
 			fmt.Println(err)
 		}
-		val2, err := strconv.Atoi(display.Text)
+		val2, err := strconv.Atoi(c.Display.Text)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -48,11 +49,26 @@ func main() {
 			val2 = val1 * 2
 		}
 		res := strconv.Itoa(sub(val2, val1))
-		display.SetText(res)
+		c.Display.SetText(res)
+	})
+
+	btnEquals := widget.NewButton("=", func() {
+		/**
+		* @todo all action
+		**/
+		c.Val2, err = strconv.Atoi(c.Input.Text)
+		var str string
+		if err == nil {
+			res := c.Val1 + c.Val2
+			str = strconv.Itoa(res)
+		} else {
+			str = err.Error()
+		}
+		c.Input.SetText(str)
 	})
 
 	btnClear := widget.NewButton("Clear", func() {
-		display.SetText("0")
+		c.Input.SetText("0")
 	})
 
 	btnExit := widget.NewButton("Exit", func() {
@@ -60,10 +76,21 @@ func main() {
 	})
 	window.SetContent(
 		container.NewVBox(
-			input,
+			c.Input,
+			c.addNumbBtn(1),
+			c.addNumbBtn(2),
+			c.addNumbBtn(3),
+			c.addNumbBtn(4),
+			c.addNumbBtn(5),
+			c.addNumbBtn(6),
+			c.addNumbBtn(7),
+			c.addNumbBtn(8),
+			c.addNumbBtn(9),
+			c.addNumbBtn(0),
 			btnSum,
 			btnSub,
-			display,
+			btnEquals,
+			c.Display,
 			btnClear,
 			btnExit,
 		),
@@ -76,22 +103,22 @@ func sub(val2, val1 int) int {
 	return val2 - val1
 }
 
-func sumHandler(data *State, input *widget.Entry, display *widget.Label) {
+func sumHandler(calc *Calc, input *widget.Entry, display *widget.Label) {
 	val, err := strconv.Atoi(input.Text)
 	if err != nil {
 		input.SetText(err.Error())
 	} else {
-		if data.Val1 == 0 {
-			data.Val1 = val
+		if calc.Val1 == 0 {
+			calc.Val1 = val
 			display.SetText("+")
 		} else {
-			data.Val2 = val
-			equal := data.Val1 + data.Val2
+			calc.Val2 = val
+			equal := calc.Val1 + calc.Val2
 			res := strconv.Itoa(equal)
 			input.SetText(res)
 			display.SetText("")
-			data.Val1 = 0
-			data.Val2 = 0
+			calc.Val1 = 0
+			calc.Val2 = 0
 		}
 	}
 }
@@ -99,11 +126,17 @@ func sumHandler(data *State, input *widget.Entry, display *widget.Label) {
 func (calc *Calc) addNumbBtn(number int) *widget.Button {
 	str := strconv.Itoa(number)
 	return widget.NewButton(str, func() {
-		val := calc.Display.Text
-		var strBuilder strings.Builder
-		strBuilder.WriteString(val)
-		strBuilder.WriteString(str)
-		calc.Display.SetText(strBuilder.String())
-		strBuilder.Reset()
+		val := calc.Input.Text
+		var newVal string
+		if val != "0" {
+			var strBuilder strings.Builder
+			strBuilder.WriteString(val)
+			strBuilder.WriteString(str)
+			newVal = strBuilder.String()
+			strBuilder.Reset()
+		} else {
+			newVal = str
+		}
+		calc.Input.SetText(newVal)
 	})
 }
