@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -10,33 +11,32 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+type State struct {
+	Val1, Val2 int
+}
+
+type Calc struct {
+	State
+	Display *widget.Label
+}
+
 func main() {
 	myApp := app.New()
+	var data State
 	window := myApp.NewWindow("Calc")
 	icon, err := fyne.LoadResourceFromPath("/Icon.png")
 	if err == nil {
 		window.SetIcon(icon)
 	}
-	input1 := widget.NewEntry()
-	input1.SetPlaceHolder("Enter number")
+	input := widget.NewEntry()
+	input.SetPlaceHolder("Enter number")
 	display := widget.NewLabel("0")
 	btnSum := widget.NewButton("+", func() {
-		val1, err := strconv.Atoi(input1.Text)
-		input1.SetText("0")
-		if err != nil {
-			fmt.Println(err)
-		}
-		val2, err := strconv.Atoi(display.Text)
-		if err != nil {
-			fmt.Println(err)
-		}
-		res := strconv.Itoa(sum(val1, val2))
-		display.SetText(res)
+		sumHandler(&data, input, display)
 	})
-
 	btnSub := widget.NewButton("-", func() {
-		val1, err := strconv.Atoi(input1.Text)
-		input1.SetText("0")
+		val1, err := strconv.Atoi(input.Text)
+		input.SetText("0")
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -60,7 +60,7 @@ func main() {
 	})
 	window.SetContent(
 		container.NewVBox(
-			input1,
+			input,
 			btnSum,
 			btnSub,
 			display,
@@ -72,14 +72,38 @@ func main() {
 	window.ShowAndRun()
 }
 
-func sum(numbers ...int) int {
-	var resp int
-	for _, number := range numbers {
-		resp += number
-	}
-	return resp
-}
-
 func sub(val2, val1 int) int {
 	return val2 - val1
+}
+
+func sumHandler(data *State, input *widget.Entry, display *widget.Label) {
+	val, err := strconv.Atoi(input.Text)
+	if err != nil {
+		input.SetText(err.Error())
+	} else {
+		if data.Val1 == 0 {
+			data.Val1 = val
+			display.SetText("+")
+		} else {
+			data.Val2 = val
+			equal := data.Val1 + data.Val2
+			res := strconv.Itoa(equal)
+			input.SetText(res)
+			display.SetText("")
+			data.Val1 = 0
+			data.Val2 = 0
+		}
+	}
+}
+
+func (calc *Calc) addNumbBtn(number int) *widget.Button {
+	str := strconv.Itoa(number)
+	return widget.NewButton(str, func() {
+		val := calc.Display.Text
+		var strBuilder strings.Builder
+		strBuilder.WriteString(val)
+		strBuilder.WriteString(str)
+		calc.Display.SetText(strBuilder.String())
+		strBuilder.Reset()
+	})
 }
