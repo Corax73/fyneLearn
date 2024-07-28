@@ -36,6 +36,10 @@ func main() {
 		c.DivHandler(c.Input, c.Display)
 	})
 
+	btnMult := widget.NewButton("*", func() {
+		c.MultHandler(c.Input, c.Display)
+	})
+
 	btnEquals := widget.NewButton("=", func() {
 		c.Val2, err = strconv.ParseFloat(c.Input.Text, 64)
 		var str string
@@ -55,9 +59,14 @@ func main() {
 					str = strconv.FormatFloat(res, 'f', 2, 64)
 				} else {
 					c.IsError = true
+					c.Display.SetText("Division by zero")
 					c.ResetState()
 				}
 				c.IsAction = true
+			case "*":
+				res := c.Val1 * c.Val2
+				c.IsAction = true
+				str = strconv.FormatFloat(res, 'f', 2, 64)
 			default:
 				str = ""
 			}
@@ -66,6 +75,9 @@ func main() {
 			c.IsError = true
 			c.ResetState()
 		}
+		c.ResetState()
+		c.IsResult = true
+		c.Display.SetText("")
 		c.Input.SetText(str)
 	})
 
@@ -99,6 +111,7 @@ func main() {
 				btnSub,
 				btnDiv),
 			container.NewGridWithColumns(3,
+				btnMult,
 				btnEquals,
 				btnClear),
 			container.NewGridWithColumns(1,
