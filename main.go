@@ -1,8 +1,9 @@
 package main
 
 import (
+	"learnFyne/calc"
+	"learnFyne/customTheme"
 	"strconv"
-	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -10,22 +11,10 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-type State struct {
-	Val1, Val2        int
-	Action            string
-	IsAction, IsError bool
-}
-
-type Calc struct {
-	State
-	Input     *widget.Entry
-	Display   *widget.Label
-	CalcError string
-}
-
 func main() {
 	myApp := app.New()
-	c := Calc{Input: widget.NewEntry(), Display: widget.NewLabel(""), CalcError: "incorrect data, try again. please."}
+	c := calc.Calc{Input: widget.NewEntry(), Display: widget.NewLabel(""), CalcError: "incorrect data, try again. please."}
+	myApp.Settings().SetTheme(customTheme.NewCustomTheme())
 	c.Input.SetPlaceHolder("Enter number")
 	window := myApp.NewWindow("Calc")
 	icon, err := fyne.LoadResourceFromPath("/Icon.png")
@@ -34,150 +23,88 @@ func main() {
 	}
 	input := widget.NewEntry()
 	input.SetPlaceHolder("Enter number")
+
 	btnSum := widget.NewButton("+", func() {
-		c.sumHandler(c.Input, c.Display)
+		c.SumHandler(c.Input, c.Display)
 	})
+
 	btnSub := widget.NewButton("-", func() {
-		c.subHandler(c.Input, c.Display)
+		c.SubHandler(c.Input, c.Display)
+	})
+
+	btnDiv := widget.NewButton("/", func() {
+		c.DivHandler(c.Input, c.Display)
 	})
 
 	btnEquals := widget.NewButton("=", func() {
-		/**
-		* @todo all action
-		**/
-		c.Val2, err = strconv.Atoi(c.Input.Text)
+		c.Val2, err = strconv.ParseFloat(c.Input.Text, 64)
 		var str string
 		if err == nil {
 			switch c.Action {
 			case "+":
 				res := c.Val1 + c.Val2
-				str = strconv.Itoa(res)
+				c.IsAction = true
+				str = strconv.FormatFloat(res, 'f', 2, 64)
 			case "-":
 				res := c.Val1 - c.Val2
-				str = strconv.Itoa(res)
+				c.IsAction = true
+				str = strconv.FormatFloat(res, 'f', 2, 64)
+			case "/":
+				if c.Val2 != 0 {
+					res := c.Val1 / c.Val2
+					str = strconv.FormatFloat(res, 'f', 2, 64)
+				} else {
+					c.IsError = true
+					c.ResetState()
+				}
+				c.IsAction = true
 			default:
 				str = ""
 			}
 		} else {
 			str = c.CalcError
 			c.IsError = true
-			c.resetState()
+			c.ResetState()
 		}
-		c.resetState()
 		c.Input.SetText(str)
 	})
 
-	btnClear := widget.NewButton("Clear", func() { c.clear() })
+	btnClear := widget.NewButton("Clear", func() { c.Clear() })
 
 	btnExit := widget.NewButton("Exit", func() {
 		myApp.Quit()
 	})
+
 	window.SetContent(
 		container.NewGridWithColumns(
-			2,
+			1,
 			c.Input,
 			c.Display,
-			container.NewGridWithColumns(4,
-				c.addNumbBtn(1),
-				c.addNumbBtn(2),
-				c.addNumbBtn(3),
-				c.addNumbBtn(4)),
-			container.NewGridWithColumns(4,
-				c.addNumbBtn(5),
-				c.addNumbBtn(6),
-				c.addNumbBtn(7),
-				c.addNumbBtn(8)),
-			container.NewGridWithColumns(4,
-				c.addNumbBtn(9),
-				c.addNumbBtn(0),
+			container.NewGridWithColumns(3,
+				c.AddNumbBtn(1),
+				c.AddNumbBtn(2),
+				c.AddNumbBtn(3)),
+			container.NewGridWithColumns(3,
+				c.AddNumbBtn(4),
+				c.AddNumbBtn(5),
+				c.AddNumbBtn(6)),
+			container.NewGridWithColumns(3,
+				c.AddNumbBtn(7),
+				c.AddNumbBtn(8),
+				c.AddNumbBtn(9)),
+			container.NewGridWithColumns(1,
+				c.AddNumbBtn(0)),
+			container.NewGridWithColumns(3,
 				btnSum,
-				btnSub),
+				btnSub,
+				btnDiv),
 			container.NewGridWithColumns(3,
 				btnEquals,
-				btnClear,
+				btnClear),
+			container.NewGridWithColumns(1,
 				btnExit),
 		),
 	)
 	window.Resize(fyne.NewSize(300, 200))
 	window.ShowAndRun()
-}
-
-func (calc *Calc) subHandler(input *widget.Entry, display *widget.Label) {
-	val, err := strconv.Atoi(input.Text)
-	if err != nil {
-		input.SetText(calc.CalcError)
-		calc.IsError = true
-		calc.resetState()
-	} else {
-		calc.IsAction = true
-		calc.Action = "-"
-		if calc.Val1 == 0 {
-			calc.Val1 = val
-			display.SetText("-")
-		} else {
-			calc.Val2 = val
-			equal := calc.Val1 - calc.Val2
-			res := strconv.Itoa(equal)
-			input.SetText(res)
-			display.SetText("")
-			calc.Val1 = 0
-			calc.Val2 = 0
-		}
-	}
-}
-
-func (calc *Calc) sumHandler(input *widget.Entry, display *widget.Label) {
-	val, err := strconv.Atoi(input.Text)
-	if err != nil {
-		input.SetText(calc.CalcError)
-		calc.IsError = true
-		calc.resetState()
-	} else {
-		calc.IsAction = true
-		calc.Action = "+"
-		if calc.Val1 == 0 {
-			calc.Val1 = val
-			display.SetText("+")
-		} else {
-			calc.Val2 = val
-			equal := calc.Val1 + calc.Val2
-			res := strconv.Itoa(equal)
-			input.SetText(res)
-			display.SetText("")
-			calc.Val1 = 0
-			calc.Val2 = 0
-		}
-	}
-}
-
-func (calc *Calc) addNumbBtn(number int) *widget.Button {
-	str := strconv.Itoa(number)
-	return widget.NewButton(str, func() {
-		val := calc.Input.Text
-		var newVal string
-		if val != "0" && !calc.IsAction && !calc.IsError {
-			var strBuilder strings.Builder
-			strBuilder.WriteString(val)
-			strBuilder.WriteString(str)
-			newVal = strBuilder.String()
-			strBuilder.Reset()
-		} else {
-			calc.IsAction = false
-			newVal = str
-		}
-		calc.IsError = false
-		calc.Input.SetText(newVal)
-	})
-}
-
-func (calc *Calc) resetState() {
-	calc.Val1, calc.Val2 = 0, 0
-	calc.IsAction = false
-	calc.Action = ""
-}
-
-func (calc *Calc) clear() {
-	calc.Input.SetText("0")
-	calc.Display.SetText("")
-	calc.resetState()
 }
