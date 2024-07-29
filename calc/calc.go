@@ -121,6 +121,17 @@ func (calc *Calc) MultHandler(input *widget.Entry, display *widget.Label) {
 	}
 }
 
+func (calc *Calc) CommaHandler(input *widget.Entry) {
+	if !strings.Contains(input.Text, ".") {
+		var strBuilder strings.Builder
+		strBuilder.WriteString(input.Text)
+		strBuilder.WriteString(".")
+		newVal := strBuilder.String()
+		strBuilder.Reset()
+		input.SetText(newVal)
+	}
+}
+
 func (calc *Calc) AddNumbBtn(number int) *widget.Button {
 	str := strconv.Itoa(number)
 	return widget.NewButton(str, func() {

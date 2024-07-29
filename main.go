@@ -81,6 +81,10 @@ func main() {
 		c.Input.SetText(str)
 	})
 
+	btnComma := widget.NewButton(".", func() {
+		c.CommaHandler(c.Input)
+	})
+
 	btnClear := widget.NewButton("Clear", func() { c.Clear() })
 
 	btnExit := widget.NewButton("Exit", func() {
@@ -113,6 +117,8 @@ func main() {
 			container.NewGridWithColumns(3,
 				btnMult,
 				btnEquals,
+				btnComma),
+			container.NewGridWithColumns(1,
 				btnClear),
 			container.NewGridWithColumns(1,
 				btnExit),
