@@ -48,15 +48,15 @@ func main() {
 			case "+":
 				res := c.Val1 + c.Val2
 				c.IsAction = true
-				str = strconv.FormatFloat(res, 'f', 2, 64)
+				str = c.UnsetZero(res)
 			case "-":
 				res := c.Val1 - c.Val2
 				c.IsAction = true
-				str = strconv.FormatFloat(res, 'f', 2, 64)
+				str = c.UnsetZero(res)
 			case "/":
 				if c.Val2 != 0 {
 					res := c.Val1 / c.Val2
-					str = strconv.FormatFloat(res, 'f', 2, 64)
+					str = c.UnsetZero(res)
 				} else {
 					c.IsError = true
 					c.Display.SetText("Division by zero")
@@ -66,7 +66,7 @@ func main() {
 			case "*":
 				res := c.Val1 * c.Val2
 				c.IsAction = true
-				str = strconv.FormatFloat(res, 'f', 2, 64)
+				str = c.UnsetZero(res)
 			default:
 				str = ""
 			}
